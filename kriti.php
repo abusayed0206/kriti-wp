@@ -150,12 +150,14 @@ class Kriti_Fonts {
                 <?php foreach ( $targets as $key => $label ) : 
                     $is_assigned = isset($assignments[$key]);
                     $current_font_name = $is_assigned ? ( isset($assignments[$key]['font_name']) ? $assignments[$key]['font_name'] : $assignments[$key]['font_id'] ) : '';
+                    $current_method = $is_assigned ? ( isset($settings['delivery_method']) ? $settings['delivery_method'] : 'cdn' ) : '';
+                    $method_display = $current_method === 'host' ? __( ' (Self Hosted)', 'kriti' ) : ( $current_method === 'cdn' ? __( ' (via CDN)', 'kriti' ) : '' );
                 ?>
                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px; background: #f6f7f7; border-radius: 8px; margin-bottom: 10px;">
                     <div>
                         <strong><?php echo esc_html( $label ); ?>:</strong>
                         <span class="kriti-active-font-name" data-target="<?php echo esc_attr( $key ); ?>" style="font-size:15px; margin-left:10px; color:#2271b1; font-weight:600;">
-                            <?php echo $current_font_name ? esc_html( $current_font_name ) : esc_html__( 'System Default', 'kriti' ); ?>
+                            <?php echo $current_font_name ? esc_html( $current_font_name ) . esc_html( $method_display ) : esc_html__( 'System Default', 'kriti' ); ?>
                         </span>
                     </div>
                     <button type="button" class="button button-secondary kriti-reset-font" data-target="<?php echo esc_attr( $key ); ?>" <?php echo empty( $current_font_name ) ? 'style="display:none;"' : ''; ?>>
@@ -167,11 +169,6 @@ class Kriti_Fonts {
             </div>
 
             <div class="kriti-controls">
-                <label for="kriti_delivery_method"><?php esc_html_e( 'Font Delivery Method:', 'kriti' ); ?></label>
-                <select id="kriti_delivery_method" name="delivery_method">
-                    <option value="cdn" <?php selected( $delivery_method, 'cdn' ); ?>><?php esc_html_e( 'Font CDN', 'kriti' ); ?></option>
-                    <option value="host" <?php selected( $delivery_method, 'host' ); ?>><?php esc_html_e( 'Host Font Files', 'kriti' ); ?></option>
-                </select>
                 <div class="kriti-search-pagination">
                     <input type="text" id="kriti-search" placeholder="<?php esc_attr_e( 'Search fonts...', 'kriti' ); ?>">
                 </div>
@@ -199,30 +196,44 @@ class Kriti_Fonts {
                         <textarea id="kriti-modal-preview-text" rows="3" placeholder="<?php esc_attr_e( 'এখানে টাইপ করুন...', 'kriti' ); ?>">এখানে টাইপ করুন...</textarea>
                         <div id="kriti-modal-preview-box" class="preview-box">এখানে টাইপ করুন...</div>
                         
-                        <div style="margin-bottom: 15px; width: 100%;">
-                            <label style="font-weight: 600; display: block; margin-bottom: 8px;"><?php esc_html_e( 'Assignment Type:', 'kriti' ); ?></label>
-                            
-                            <label style="margin-right: 15px;">
-                                <input type="radio" name="kriti_assignment_mode" value="global" checked> <?php esc_html_e( 'Global', 'kriti' ); ?>
-                            </label>
-                            <label>
-                                <input type="radio" name="kriti_assignment_mode" value="custom"> <?php esc_html_e( 'Custom', 'kriti' ); ?>
-                            </label>
-                            
-                            <div id="kriti-custom-targets-wrap" style="display:none; margin-top: 10px;">
-                                <label for="kriti-font-target" style="font-weight: 600; display: block; margin-bottom: 5px;"><?php esc_html_e( 'Select Target:', 'kriti' ); ?></label>
-                                <select id="kriti-font-target" style="width: 100%; padding: 8px; border-radius: 8px; font-size: 15px;">
-                                    <?php foreach ( $targets as $key => $label ) : 
-                                        if ( $key === 'global' ) continue;
-                                    ?>
-                                        <option value="<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $label ); ?></option>
-                                    <?php endforeach; ?>
-                                </select>
+                        <div class="kriti-modal-settings-box">
+                            <div style="margin-bottom: 15px; width: 100%;">
+                                <label style="font-weight: 600; display: block; margin-bottom: 8px;"><?php esc_html_e( 'Font Delivery Method:', 'kriti' ); ?></label>
+                                <label style="margin-right: 15px;">
+                                    <input type="radio" name="kriti_delivery_method" value="cdn" <?php checked( $delivery_method, 'cdn' ); ?>> <?php esc_html_e( 'Font CDN (Fast)', 'kriti' ); ?>
+                                </label>
+                                <label>
+                                    <input type="radio" name="kriti_delivery_method" value="host" <?php checked( $delivery_method, 'host' ); ?>> <?php esc_html_e( 'Host Locally', 'kriti' ); ?>
+                                </label>
+                            </div>
+
+                            <div style="margin-bottom: 0px; width: 100%;">
+                                <label style="font-weight: 600; display: block; margin-bottom: 8px;"><?php esc_html_e( 'Assignment Type:', 'kriti' ); ?></label>
+                                
+                                <label style="margin-right: 15px;">
+                                    <input type="radio" name="kriti_assignment_mode" value="global" checked> <?php esc_html_e( 'Global', 'kriti' ); ?>
+                                </label>
+                                <label>
+                                    <input type="radio" name="kriti_assignment_mode" value="custom"> <?php esc_html_e( 'Custom', 'kriti' ); ?>
+                                </label>
+                                
+                                <div id="kriti-custom-targets-wrap" style="display:none; margin-top: 10px;">
+                                    <label for="kriti-font-target" style="font-weight: 600; display: block; margin-bottom: 5px;"><?php esc_html_e( 'Select Target:', 'kriti' ); ?></label>
+                                    <select id="kriti-font-target" style="width: 100%; padding: 8px; border-radius: 8px; font-size: 15px; background: #fff; border: 1px solid #8c8f94;">
+                                        <?php foreach ( $targets as $key => $label ) : 
+                                            if ( $key === 'global' ) continue;
+                                        ?>
+                                            <option value="<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $label ); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
                             </div>
                         </div>
 
-                        <button class="button button-primary" id="kriti-select-font"><?php esc_html_e( 'Select & Save Font', 'kriti' ); ?></button>
-                        <span id="kriti-save-status"></span>
+                        <div style="display: flex; align-items: center; margin-top: 20px;">
+                            <button class="button button-primary" id="kriti-select-font" style="margin-top: 0; flex-shrink: 0;"><?php esc_html_e( 'Select & Save Font', 'kriti' ); ?></button>
+                            <div id="kriti-save-status" style="display: none; align-items: center;"></div>
+                        </div>
                     </div>
 
                     <div id="kriti-tab-metadata" class="kriti-tab-content" style="display:none;">
@@ -267,6 +278,14 @@ class Kriti_Fonts {
         $font_id         = isset( $_POST['font_id'] ) ? sanitize_text_field( wp_unslash( $_POST['font_id'] ) ) : '';
         $font_name       = isset( $_POST['font_name'] ) ? sanitize_text_field( wp_unslash( $_POST['font_name'] ) ) : $font_id;
         $download_url    = isset( $_POST['download_url'] ) ? esc_url_raw( wp_unslash( $_POST['download_url'] ) ) : '';
+
+        // Ensure the font is only being downloaded from the official kriti.app domain.
+        if ( 'host' === $delivery_method && ! empty( $download_url ) ) {
+            $parsed_url = wp_parse_url( $download_url );
+            if ( ! isset( $parsed_url['host'] ) || $parsed_url['host'] !== 'kriti.app' ) {
+                wp_send_json_error( __( 'Security error: Invalid download source. Fonts can only be downloaded from kriti.app.', 'kriti' ) );
+            }
+        }
 
         if ( empty( $target ) ) {
             $target = 'global';
@@ -321,7 +340,15 @@ class Kriti_Fonts {
             'tmp_name' => $tmp_file,
         );
 
-        $upload = wp_handle_sideload( $file_array, array( 'test_form' => false ) );
+        // Explicitly allow .woff2 files to be safely uploaded
+        $mimes = get_allowed_mime_types();
+        $mimes['woff2'] = 'font/woff2';
+
+        $upload = wp_handle_sideload( $file_array, array( 
+            'test_form' => false,
+            'test_type' => false, // Bypass strict WP mime-type sniffing which blocks woff2 even if explicitly allowed
+            'mimes'     => $mimes
+        ) );
 
         if ( isset( $upload['error'] ) ) {
             @unlink( $tmp_file );

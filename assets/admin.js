@@ -117,12 +117,7 @@ jQuery(document).ready(function($) {
         $('#kriti-modal-preview-text').val('এখানে টাইপ করুন...');
         $('#kriti-modal-preview-box').text('এখানে টাইপ করুন...');
 
-        let metaHtml = `
-            <p><strong>Font Name:</strong> ${fontData.name}</p>
-            <p><strong>Author:</strong> ${fontData.author || 'Unknown'}</p>
-            <p><strong>Styles:</strong> ${fontData.styles ? fontData.styles.length : 0} Available</p>
-        `;
-        $('#kriti-metadata-content').html(metaHtml);
+        $('#kriti-metadata-content').html('<p style="text-align:center;">Loading metadata...</p>');
         
         // Reset tabs
         $('.kriti-modal-tabs a').removeClass('nav-tab-active');
@@ -147,6 +142,43 @@ jQuery(document).ready(function($) {
         let target = $(this).data('tab');
         $('.kriti-tab-content').hide();
         $('#kriti-tab-' + target).show();
+
+        // Fetch Metadata via API when clicking Metadata tab
+        if (target === 'metadata' && currentModalFont && !currentModalFont.hasLoadedMeta) {
+            let metaSlug = currentModalFont.slug;
+            $.get(`https://kriti.app/api/fonts/${metaSlug}`)
+                .done(function(res) {
+                    currentModalFont.hasLoadedMeta = true;
+                    // Format response neatly
+                    let metaHtml = `
+                        <div style="font-size: 14px; line-height: 1.6; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div>
+                                <p><strong>Name:</strong> ${res.name || 'N/A'}</p>
+                                <p><strong>Family Name:</strong> ${res.familyName || 'N/A'} (<em>${res.subfamilyName || 'Regular'}</em>)</p>
+                                <p><strong>PostScript Name:</strong> ${res.postScriptName || 'N/A'}</p>
+                                <p><strong>File Name:</strong> ${res.fileName || 'N/A'} (${res.fileSizeFormatted || 'N/A'})</p>
+                                <p><strong>Version:</strong> ${res.version || 'N/A'}</p>
+                                <p><strong>Description:</strong> ${res.description || 'N/A'}</p>
+                                <p><strong>Author / Designer:</strong> ${res.designer ? (res.designerURL ? `<a href="${(!res.designerURL.startsWith('http') ? 'https://' : '') + res.designerURL}" target="_blank">${res.designer}</a>` : res.designer) : 'N/A'}</p>
+                                <p><strong>Manufacturer:</strong> ${res.manufacturer ? (res.manufacturerURL ? `<a href="${(!res.manufacturerURL.startsWith('http') ? 'https://' : '') + res.manufacturerURL}" target="_blank">${res.manufacturer}</a>` : res.manufacturer) : 'N/A'}</p>
+                            </div>
+                            <div>
+                                <p><strong>Copyright:</strong> ${res.copyright || 'N/A'}</p>
+                                <p><strong>Trademark:</strong> ${res.trademark || 'N/A'}</p>
+                                <p><strong>License:</strong> <em>${res.licenseType || res.license || 'N/A'}</em> - ${res.licenseURL ? `<a href="${(!res.licenseURL.startsWith('http') ? 'https://' : '') + res.licenseURL}" target="_blank">View License</a>` : 'N/A'}</p>
+                                <p><strong>Supported Scripts:</strong> ${(res.unicodeRanges || []).join(', ') || 'N/A'}</p>
+                                <p><strong>Glyphs:</strong> ${res.numGlyphs || 'N/A'}</p>
+                                <p><strong>Units Per Em:</strong> ${res.unitsPerEm || 'N/A'}</p>
+                                <p><strong>Ascender / Descender:</strong> ${res.ascender || 'N/A'} / ${res.descender || 'N/A'}</p>
+                            </div>
+                        </div>
+                    `;
+                    $('#kriti-metadata-content').html(metaHtml);
+                })
+                .fail(function() {
+                    $('#kriti-metadata-content').html('<p style="color:red; text-align:center;">Failed to load font metadata.</p>');
+                });
+        }
     });
 
     $('#kriti-modal-preview-text').on('input', function() {
@@ -174,7 +206,7 @@ jQuery(document).ready(function($) {
         
         let mode = $('input[name="kriti_assignment_mode"]:checked').val();
         let targetId = (mode === 'custom') ? $('#kriti-font-target').val() : 'global';
-        let deliveryMethod = $('#kriti_delivery_method').val();
+        let deliveryMethod = $('input[name="kriti_delivery_method"]:checked').val() || 'cdn';
         let downloadUrl = currentModalFont.styles && currentModalFont.styles[0] ? 'https://kriti.app' + currentModalFont.styles[0].woff2Url : '';
         
         $btn.prop('disabled', true).text(kritiData.i18n.saving);
@@ -194,17 +226,17 @@ jQuery(document).ready(function($) {
             },
             success: function(response) {
                 if (response.success) {
-                    $('#kriti-save-status').html(`<span style="color: green; margin-left: 10px;">${kritiData.i18n.saved}</span>`).fadeIn();
+                    $('#kriti-save-status').html(`<span style="color: #00a32a; font-weight: 600; margin-left: 15px;">${kritiData.i18n.saved}</span>`).fadeIn('fast');
                     setTimeout(() => {
                         window.location.reload();
                     }, 1000);
                 } else {
-                    $('#kriti-save-status').html(`<span style="color: red; margin-left: 10px;">${response.data || kritiData.i18n.error}</span>`).fadeIn();
+                    $('#kriti-save-status').html(`<span style="color: #d63638; font-weight: 600; margin-left: 15px;">${response.data || kritiData.i18n.error}</span>`).fadeIn('fast');
                     $btn.prop('disabled', false).text(origText);
                 }
             },
             error: function() {
-                $('#kriti-save-status').html(`<span style="color: red; margin-left: 10px;">${kritiData.i18n.error}</span>`).fadeIn();
+                $('#kriti-save-status').html(`<span style="color: #d63638; font-weight: 600; margin-left: 15px;">${kritiData.i18n.error}</span>`).fadeIn('fast');
                 $btn.prop('disabled', false).text(origText);
             }
         });
