@@ -1,11 +1,13 @@
 <?php
 /**
- * Plugin Name:       Kriti: Bangla Fonts CDN & hosted Fonts
+ * Plugin Name:       Kriti: Bangla Fonts CDN & hosted Bangla Fonts
  * Plugin URI:        https://kriti.app
  * Description:       A plugin to integrate Bangla fonts via CDN or locally hosted files.
  * Version:           1.0.0
  * Author:            Sayed
- * Text Domain:       kriti
+ * Text Domain:       kriti | কৃতি
+ * License:           GPLv2 or later
+ * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -52,7 +54,27 @@ class Kriti_Fonts {
     }
 
     public function register_settings() {
-        register_setting( 'kriti_fonts_group', $this->option_name );
+        register_setting( 'kriti_fonts_group', $this->option_name, array(
+            'sanitize_callback' => array( $this, 'sanitize_settings_data' )
+        ) );
+    }
+
+    public function sanitize_settings_data( $input ) {
+        $sanitized = array();
+        if ( isset( $input['delivery_method'] ) ) {
+            $sanitized['delivery_method'] = sanitize_text_field( $input['delivery_method'] );
+        }
+        if ( isset( $input['assignments'] ) && is_array( $input['assignments'] ) ) {
+            $sanitized['assignments'] = array();
+            foreach ( $input['assignments'] as $target => $data ) {
+                $sanitized['assignments'][ sanitize_text_field( $target ) ] = array(
+                    'font_id'   => isset( $data['font_id'] ) ? sanitize_text_field( $data['font_id'] ) : '',
+                    'font_name' => isset( $data['font_name'] ) ? sanitize_text_field( $data['font_name'] ) : '',
+                    'font_url'  => isset( $data['font_url'] ) ? esc_url_raw( $data['font_url'] ) : '',
+                );
+            }
+        }
+        return $sanitized;
     }
 
     public function enqueue_admin_assets( $hook_suffix ) {
@@ -351,7 +373,7 @@ class Kriti_Fonts {
         ) );
 
         if ( isset( $upload['error'] ) ) {
-            @unlink( $tmp_file );
+            wp_delete_file( $tmp_file );
             return new WP_Error( 'upload_error', $upload['error'] );
         }
 
@@ -380,37 +402,32 @@ class Kriti_Fonts {
         echo '<style id="kriti-custom-fonts">';
         // Output font-faces
         foreach ( $unique_fonts as $font_id => $font_url ) {
-            $family = esc_attr( $font_id );
-            $url = esc_url( $font_url );
-            echo "
-                @font-face {
-                    font-family: 'Kriti-{$family}';
-                    src: url('{$url}') format('woff2');
-                    font-display: swap;
-                }";
+            printf(
+                "@font-face { font-family: 'Kriti-%s'; src: url('%s') format('woff2'); font-display: swap; }\n",
+                esc_attr( $font_id ),
+                esc_url( $font_url )
+            );
         }
 
         // Apply target CSS Rules
         foreach ( $assignments as $target => $data ) {
             if ( empty( $data['font_id'] ) ) continue;
             
-            $family_name = "Kriti-" . esc_attr( $data['font_id'] );
-            
             if ( 'global' === $target ) {
-                echo "
-                body, p, h1, h2, h3, h4, h5, h6, a, span, div, li, ul, ol { 
-                    font-family: '{$family_name}', sans-serif; 
-                }";
+                printf(
+                    "body, p, h1, h2, h3, h4, h5, h6, a, span, div, li, ul, ol { font-family: 'Kriti-%s', sans-serif; }\n",
+                    esc_attr( $data['font_id'] )
+                );
             } elseif ( 'headings' === $target ) {
-                echo "
-                h1, h2, h3, h4, h5, h6 { 
-                    font-family: '{$family_name}', sans-serif !important; 
-                }";
+                printf(
+                    "h1, h2, h3, h4, h5, h6 { font-family: 'Kriti-%s', sans-serif !important; }\n",
+                    esc_attr( $data['font_id'] )
+                );
             } elseif ( 'paragraphs' === $target ) {
-                echo "
-                p { 
-                    font-family: '{$family_name}', sans-serif !important; 
-                }";
+                printf(
+                    "p { font-family: 'Kriti-%s', sans-serif !important; }\n",
+                    esc_attr( $data['font_id'] )
+                );
             }
         }
         echo '</style>';
