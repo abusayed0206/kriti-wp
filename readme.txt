@@ -1,4 +1,4 @@
-=== Kriti: Bangla Fonts CDN & hosted Fonts ===
+=== Kriti: Bangla Fonts CDN & hosted Bangla Fonts ===
 Contributors: sayed
 Tags: bangla font, bengali fonts, typography, font cdn, custom fonts
 Requires at least: 5.8
