@@ -5,7 +5,7 @@
  * Description:       A plugin to integrate Bangla fonts via CDN or locally hosted files.
  * Version:           1.0.0
  * Author:            Sayed
- * Text Domain:       kriti
+ * Text Domain:       kriti-bangla-fonts-cdn-and-hosted-bangla-fonts
  * License:           GPLv2 or later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  */
@@ -34,7 +34,7 @@ class Kriti_Fonts {
     }
 
     public function add_plugin_action_links( $links ) {
-        $settings_link = '<a href="admin.php?page=kriti-fonts">' . esc_html__( 'Settings', 'kriti' ) . '</a>';
+        $settings_link = '<a href="admin.php?page=kriti-fonts">' . esc_html__( 'Settings', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ) . '</a>';
         array_unshift( $links, $settings_link );
         return $links;
     }
@@ -43,8 +43,8 @@ class Kriti_Fonts {
         $bd_flag_icon = KRITI_PLUGIN_URL . 'assets/icon.svg';
         
         add_menu_page(
-            __( 'Kriti Fonts', 'kriti' ),
-            __( 'Kriti Fonts', 'kriti' ),
+            __( 'Kriti Fonts', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ),
+            __( 'Kriti Fonts', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ),
             'manage_options',
             'kriti-fonts',
             array( $this, 'render_admin_page' ),
@@ -94,11 +94,11 @@ class Kriti_Fonts {
             'fontsData'  => $metadata['fontsData'],
             'settings'   => get_option( $this->option_name, array( 'delivery_method' => 'cdn', 'assignments' => array() ) ),
             'i18n'       => array(
-                'saving'    => __( 'Saving...', 'kriti' ),
-                'saved'     => __( 'Saved successfully!', 'kriti' ),
-                'error'     => __( 'Error saving font.', 'kriti' ),
-                'resetting' => __( 'Resetting...', 'kriti' ),
-                'resetMsg'  => __( 'Font removed and reset to default.', 'kriti' ),
+                'saving'    => __( 'Saving...', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ),
+                'saved'     => __( 'Saved successfully!', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ),
+                'error'     => __( 'Error saving font.', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ),
+                'resetting' => __( 'Resetting...', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ),
+                'resetMsg'  => __( 'Font removed and reset to default.', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ),
             )
         ) );
     }
@@ -158,32 +158,32 @@ class Kriti_Fonts {
         $delivery_method = isset( $settings['delivery_method'] ) ? $settings['delivery_method'] : 'cdn';
         
         $targets = array(
-            'global'     => __( 'Global Typography (Body & All Text)', 'kriti' ),
-            'headings'   => __( 'Headings Only (H1 - H6)', 'kriti' ),
-            'paragraphs' => __( 'Paragraphs Only (P tags)', 'kriti' ),
+            'global'     => __( 'Global Typography (Body & All Text)', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ),
+            'headings'   => __( 'Headings Only (H1 - H6)', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ),
+            'paragraphs' => __( 'Paragraphs Only (P tags)', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ),
         );
         ?>
         <div class="wrap kriti-wrap">
-            <h1><?php esc_html_e( 'Kriti Fonts Settings', 'kriti' ); ?></h1>
+            <h1><?php esc_html_e( 'Kriti Fonts Settings', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ); ?></h1>
             
             <div class="kriti-current-status" style="background:#fff; border:1px solid #c3c4c7; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
-                <h3 style="margin-top:0; border-bottom:1px solid #f0f0f1; padding-bottom:15px; margin-bottom:15px;"><?php esc_html_e( 'Actively Used Fonts', 'kriti' ); ?></h3>
+                <h3 style="margin-top:0; border-bottom:1px solid #f0f0f1; padding-bottom:15px; margin-bottom:15px;"><?php esc_html_e( 'Actively Used Fonts', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ); ?></h3>
                 
                 <?php foreach ( $targets as $key => $label ) : 
                     $is_assigned = isset($assignments[$key]);
                     $current_font_name = $is_assigned ? ( isset($assignments[$key]['font_name']) ? $assignments[$key]['font_name'] : $assignments[$key]['font_id'] ) : '';
                     $current_method = $is_assigned ? ( isset($settings['delivery_method']) ? $settings['delivery_method'] : 'cdn' ) : '';
-                    $method_display = $current_method === 'host' ? __( ' (Self Hosted)', 'kriti' ) : ( $current_method === 'cdn' ? __( ' (via CDN)', 'kriti' ) : '' );
+                    $method_display = $current_method === 'host' ? __( ' (Self Hosted)', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ) : ( $current_method === 'cdn' ? __( ' (via CDN)', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ) : '' );
                 ?>
                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px; background: #f6f7f7; border-radius: 8px; margin-bottom: 10px;">
                     <div>
                         <strong><?php echo esc_html( $label ); ?>:</strong>
                         <span class="kriti-active-font-name" data-target="<?php echo esc_attr( $key ); ?>" style="font-size:15px; margin-left:10px; color:#2271b1; font-weight:600;">
-                            <?php echo $current_font_name ? esc_html( $current_font_name ) . esc_html( $method_display ) : esc_html__( 'System Default', 'kriti' ); ?>
+                            <?php echo $current_font_name ? esc_html( $current_font_name ) . esc_html( $method_display ) : esc_html__( 'System Default', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ); ?>
                         </span>
                     </div>
                     <button type="button" class="button button-secondary kriti-reset-font" data-target="<?php echo esc_attr( $key ); ?>" <?php echo empty( $current_font_name ) ? 'style="display:none;"' : ''; ?>>
-                        <?php esc_html_e( 'Remove', 'kriti' ); ?>
+                        <?php esc_html_e( 'Remove', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ); ?>
                     </button>
                 </div>
                 <?php endforeach; ?>
@@ -192,7 +192,7 @@ class Kriti_Fonts {
 
             <div class="kriti-controls">
                 <div class="kriti-search-pagination">
-                    <input type="text" id="kriti-search" placeholder="<?php esc_attr_e( 'Search fonts...', 'kriti' ); ?>">
+                    <input type="text" id="kriti-search" placeholder="<?php esc_attr_e( 'Search fonts...', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ); ?>">
                 </div>
             </div>
 
@@ -210,37 +210,37 @@ class Kriti_Fonts {
                     <h2 id="kriti-modal-title"></h2>
                     
                     <h2 class="nav-tab-wrapper kriti-modal-tabs" style="margin-bottom: 15px;">
-                        <a href="#" class="nav-tab nav-tab-active" data-tab="preview"><?php esc_html_e( 'Preview & Save', 'kriti' ); ?></a>
-                        <a href="#" class="nav-tab" data-tab="metadata"><?php esc_html_e( 'Metadata', 'kriti' ); ?></a>
+                        <a href="#" class="nav-tab nav-tab-active" data-tab="preview"><?php esc_html_e( 'Preview & Save', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ); ?></a>
+                        <a href="#" class="nav-tab" data-tab="metadata"><?php esc_html_e( 'Metadata', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ); ?></a>
                     </h2>
                     
                     <div id="kriti-tab-preview" class="kriti-tab-content">
-                        <textarea id="kriti-modal-preview-text" rows="3" placeholder="<?php esc_attr_e( 'এখানে টাইপ করুন...', 'kriti' ); ?>">এখানে টাইপ করুন...</textarea>
+                        <textarea id="kriti-modal-preview-text" rows="3" placeholder="<?php esc_attr_e( 'এখানে টাইপ করুন...', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ); ?>">এখানে টাইপ করুন...</textarea>
                         <div id="kriti-modal-preview-box" class="preview-box">এখানে টাইপ করুন...</div>
                         
                         <div class="kriti-modal-settings-box">
                             <div style="margin-bottom: 15px; width: 100%;">
-                                <label style="font-weight: 600; display: block; margin-bottom: 8px;"><?php esc_html_e( 'Font Delivery Method:', 'kriti' ); ?></label>
+                                <label style="font-weight: 600; display: block; margin-bottom: 8px;"><?php esc_html_e( 'Font Delivery Method:', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ); ?></label>
                                 <label style="margin-right: 15px;">
-                                    <input type="radio" name="kriti_delivery_method" value="cdn" <?php checked( $delivery_method, 'cdn' ); ?>> <?php esc_html_e( 'Font CDN (Fast)', 'kriti' ); ?>
+                                    <input type="radio" name="kriti_delivery_method" value="cdn" <?php checked( $delivery_method, 'cdn' ); ?>> <?php esc_html_e( 'Font CDN (Fast)', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ); ?>
                                 </label>
                                 <label>
-                                    <input type="radio" name="kriti_delivery_method" value="host" <?php checked( $delivery_method, 'host' ); ?>> <?php esc_html_e( 'Host Locally', 'kriti' ); ?>
+                                    <input type="radio" name="kriti_delivery_method" value="host" <?php checked( $delivery_method, 'host' ); ?>> <?php esc_html_e( 'Host Locally', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ); ?>
                                 </label>
                             </div>
 
                             <div style="margin-bottom: 0px; width: 100%;">
-                                <label style="font-weight: 600; display: block; margin-bottom: 8px;"><?php esc_html_e( 'Assignment Type:', 'kriti' ); ?></label>
+                                <label style="font-weight: 600; display: block; margin-bottom: 8px;"><?php esc_html_e( 'Assignment Type:', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ); ?></label>
                                 
                                 <label style="margin-right: 15px;">
-                                    <input type="radio" name="kriti_assignment_mode" value="global" checked> <?php esc_html_e( 'Global', 'kriti' ); ?>
+                                    <input type="radio" name="kriti_assignment_mode" value="global" checked> <?php esc_html_e( 'Global', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ); ?>
                                 </label>
                                 <label>
-                                    <input type="radio" name="kriti_assignment_mode" value="custom"> <?php esc_html_e( 'Custom', 'kriti' ); ?>
+                                    <input type="radio" name="kriti_assignment_mode" value="custom"> <?php esc_html_e( 'Custom', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ); ?>
                                 </label>
                                 
                                 <div id="kriti-custom-targets-wrap" style="display:none; margin-top: 10px;">
-                                    <label for="kriti-font-target" style="font-weight: 600; display: block; margin-bottom: 5px;"><?php esc_html_e( 'Select Target:', 'kriti' ); ?></label>
+                                    <label for="kriti-font-target" style="font-weight: 600; display: block; margin-bottom: 5px;"><?php esc_html_e( 'Select Target:', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ); ?></label>
                                     <select id="kriti-font-target" style="width: 100%; padding: 8px; border-radius: 8px; font-size: 15px; background: #fff; border: 1px solid #8c8f94;">
                                         <?php foreach ( $targets as $key => $label ) : 
                                             if ( $key === 'global' ) continue;
@@ -253,7 +253,7 @@ class Kriti_Fonts {
                         </div>
 
                         <div style="display: flex; align-items: center; margin-top: 20px;">
-                            <button class="button button-primary" id="kriti-select-font" style="margin-top: 0; flex-shrink: 0;"><?php esc_html_e( 'Select & Save Font', 'kriti' ); ?></button>
+                            <button class="button button-primary" id="kriti-select-font" style="margin-top: 0; flex-shrink: 0;"><?php esc_html_e( 'Select & Save Font', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ); ?></button>
                             <div id="kriti-save-status" style="display: none; align-items: center;"></div>
                         </div>
                     </div>
@@ -285,7 +285,7 @@ class Kriti_Fonts {
         }
         update_option( $this->option_name, $settings );
 
-        wp_send_json_success( array( 'message' => __( 'Font reset successfully.', 'kriti' ) ) );
+        wp_send_json_success( array( 'message' => __( 'Font reset successfully.', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ) ) );
     }
 
     public function ajax_save_font() {
@@ -305,7 +305,7 @@ class Kriti_Fonts {
         if ( 'host' === $delivery_method && ! empty( $download_url ) ) {
             $parsed_url = wp_parse_url( $download_url );
             if ( ! isset( $parsed_url['host'] ) || $parsed_url['host'] !== 'kriti.app' ) {
-                wp_send_json_error( __( 'Security error: Invalid download source. Fonts can only be downloaded from kriti.app.', 'kriti' ) );
+                wp_send_json_error( __( 'Security error: Invalid download source. Fonts can only be downloaded from kriti.app.', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ) );
             }
         }
 
@@ -342,12 +342,12 @@ class Kriti_Fonts {
 
         update_option( $this->option_name, $settings );
 
-        wp_send_json_success( array( 'message' => __( 'Font settings saved.', 'kriti' ), 'settings' => $settings ) );
+        wp_send_json_success( array( 'message' => __( 'Font settings saved.', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ), 'settings' => $settings ) );
     }
 
     private function download_font( $url, $font_id ) {
         if ( empty( $url ) ) {
-            return new WP_Error( 'invalid_url', __( 'Invalid download URL.', 'kriti' ) );
+            return new WP_Error( 'invalid_url', __( 'Invalid download URL.', 'kriti-bangla-fonts-cdn-and-hosted-bangla-fonts' ) );
         }
 
         require_once( ABSPATH . 'wp-admin/includes/file.php' );
