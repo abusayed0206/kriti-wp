@@ -25,20 +25,15 @@ class Kriti_Fonts {
     private $allowed_delivery_methods = array( 'cdn', 'host' );
 
     public function __construct() {
-        add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
         add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
         add_action( 'admin_init', array( $this, 'register_settings' ) );
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
         add_action( 'wp_ajax_kriti_save_font', array( $this, 'ajax_save_font' ) );
         add_action( 'wp_ajax_kriti_reset_font', array( $this, 'ajax_reset_font' ) );
-        add_action( 'wp_head', array( $this, 'enqueue_frontend_font' ) );
+        add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_font' ) );
 
         $plugin_basename = plugin_basename( __FILE__ );
         add_filter( 'plugin_action_links_' . $plugin_basename, array( $this, 'add_plugin_action_links' ) );
-    }
-
-    public function load_textdomain() {
-        load_plugin_textdomain( 'kriti-bangla-fonts', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
     }
 
     private function is_valid_target( $target ) {
@@ -440,14 +435,30 @@ class Kriti_Fonts {
             'type'     => 'font/woff2',
         );
 
-        // Explicitly allow .woff2 files to be safely uploaded
-        $mimes = get_allowed_mime_types();
-        $mimes['woff2'] = 'font/woff2';
+        $add_woff2_mime = function( $mimes ) {
+            $mimes['woff2'] = 'font/woff2';
+            return $mimes;
+        };
+        add_filter( 'upload_mimes', $add_woff2_mime );
+
+        $check_filetype = function( $data, $file, $filename, $mimes ) {
+            $ext = strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) );
+            if ( 'woff2' === $ext ) {
+                $data['ext']  = 'woff2';
+                $data['type'] = 'font/woff2';
+                $data['proper_filename'] = $filename;
+            }
+            return $data;
+        };
+        add_filter( 'wp_check_filetype_and_ext', $check_filetype, 10, 4 );
 
         $upload = wp_handle_sideload( $file_array, array(
             'test_form' => false,
-            'mimes'     => $mimes,
+            'test_type' => false,
         ) );
+
+        remove_filter( 'upload_mimes', $add_woff2_mime );
+        remove_filter( 'wp_check_filetype_and_ext', $check_filetype );
 
         if ( isset( $upload['error'] ) ) {
             if ( is_string( $tmp_file ) && file_exists( $tmp_file ) ) {
@@ -491,10 +502,10 @@ class Kriti_Fonts {
             return;
         }
 
-        echo '<style id="kriti-custom-fonts">';
+        $css = '';
         // Output font-faces
         foreach ( $unique_fonts as $font_id => $font_url ) {
-            printf(
+            $css .= sprintf(
                 "@font-face { font-family: 'Kriti-%s'; src: url('%s') format('woff2'); font-display: swap; }\n",
                 esc_attr( $font_id ),
                 esc_url( $font_url )
@@ -514,23 +525,26 @@ class Kriti_Fonts {
             }
             
             if ( 'global' === $target ) {
-                printf(
+                $css .= sprintf(
                     "body, p, h1, h2, h3, h4, h5, h6, a, span, div, li, ul, ol { font-family: 'Kriti-%s', sans-serif; }\n",
                     esc_attr( $font_id )
                 );
             } elseif ( 'headings' === $target ) {
-                printf(
+                $css .= sprintf(
                     "h1, h2, h3, h4, h5, h6 { font-family: 'Kriti-%s', sans-serif !important; }\n",
                     esc_attr( $font_id )
                 );
             } elseif ( 'paragraphs' === $target ) {
-                printf(
+                $css .= sprintf(
                     "p { font-family: 'Kriti-%s', sans-serif !important; }\n",
                     esc_attr( $font_id )
                 );
             }
         }
-        echo '</style>';
+
+        wp_register_style( 'kriti-custom-fonts', false, array(), KRITI_PLUGIN_VERSION );
+        wp_enqueue_style( 'kriti-custom-fonts' );
+        wp_add_inline_style( 'kriti-custom-fonts', $css );
     }
 }
 
