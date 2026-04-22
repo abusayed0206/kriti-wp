@@ -20,26 +20,30 @@ jobs:
       - name: Prepare Plugin Archive
         run: |
           # Create a dedicated directory with the plugin slug
-          mkdir -p /tmp/kriti
+          mkdir -p /tmp/kriti-bangla-fonts
           
           # Copy all files from the workspace into the directory
           # Excludes repository/dev-specific files so they don't bloat the release
           rsync -av --exclude='.git' \
                     --exclude='.github' \
                     --exclude='.gitignore' \
-                    . /tmp/kriti/
+                    --exclude='assets/banner-*' \
+                    --exclude='assets/screenshot-*' \
+                    --exclude='README.md' \
+                    --exclude='fix.md' \
+                    . /tmp/kriti-bangla-fonts/
           
           # Create the zip file
           cd /tmp
-          zip -r kriti.zip kriti/
+          zip -r kriti-bangla-fonts.zip kriti-bangla-fonts/
           
           # Move the zip back to the GitHub workspace
-          mv kriti.zip ${{ github.workspace }}/kriti.zip
+          mv kriti-bangla-fonts.zip ${{ github.workspace }}/kriti-bangla-fonts.zip
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: kriti.zip
+          files: kriti-bangla-fonts.zip
           generate_release_notes: true
           draft: false
           prerelease: false
