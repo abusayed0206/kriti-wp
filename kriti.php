@@ -3,7 +3,7 @@
  * Plugin Name:       Kriti Bangla Fonts
  * Plugin URI:        https://kriti.app
  * Description:       Integrate Bangla fonts via Kriti CDN or locally hosted files.
- * Version:           1.0.1
+ * Version:           1.0.2
  * Author:            Sayed
  * Text Domain:       kriti-bangla-fonts
  * License:           GPLv2 or later
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 define( 'KRITI_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'KRITI_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
-define( 'KRITI_PLUGIN_VERSION', '1.0.1' );
+define( 'KRITI_PLUGIN_VERSION', '1.0.2' );
 
 class Kriti_Fonts {
 
@@ -30,7 +30,7 @@ class Kriti_Fonts {
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
         add_action( 'wp_ajax_kriti_save_font', array( $this, 'ajax_save_font' ) );
         add_action( 'wp_ajax_kriti_reset_font', array( $this, 'ajax_reset_font' ) );
-        add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_font' ) );
+        add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_font' ), 999 );
 
         $plugin_basename = plugin_basename( __FILE__ );
         add_filter( 'plugin_action_links_' . $plugin_basename, array( $this, 'add_plugin_action_links' ) );
@@ -72,15 +72,13 @@ class Kriti_Fonts {
     }
 
     public function add_admin_menu() {
-        $bd_flag_icon = KRITI_PLUGIN_URL . 'assets/icon.svg';
-        
         add_menu_page(
             __( 'Kriti Fonts', 'kriti-bangla-fonts' ),
             __( 'Kriti Fonts', 'kriti-bangla-fonts' ),
             'manage_options',
             'kriti-fonts',
             array( $this, 'render_admin_page' ),
-            $bd_flag_icon,
+            KRITI_PLUGIN_URL . 'icon.svg',
             80 // Position in the menu
         );
     }
@@ -120,8 +118,8 @@ class Kriti_Fonts {
             return;
         }
 
-        wp_enqueue_style( 'kriti-admin-css', KRITI_PLUGIN_URL . 'assets/admin.css', array(), KRITI_PLUGIN_VERSION );
-        wp_enqueue_script( 'kriti-admin-js', KRITI_PLUGIN_URL . 'assets/admin.js', array( 'jquery' ), KRITI_PLUGIN_VERSION, true );
+        wp_enqueue_style( 'kriti-admin-css', KRITI_PLUGIN_URL . 'admin.css', array(), KRITI_PLUGIN_VERSION );
+        wp_enqueue_script( 'kriti-admin-js', KRITI_PLUGIN_URL . 'admin.js', array( 'jquery' ), KRITI_PLUGIN_VERSION, true );
 
         $metadata = $this->get_fonts_metadata();
 
@@ -218,11 +216,19 @@ class Kriti_Fonts {
             <div class="kriti-current-status" style="background:#fff; border:1px solid #c3c4c7; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
                 <h3 style="margin-top:0; border-bottom:1px solid #f0f0f1; padding-bottom:15px; margin-bottom:15px;"><?php esc_html_e( 'Actively Used Fonts', 'kriti-bangla-fonts' ); ?></h3>
                 
-                <?php foreach ( $targets as $key => $label ) : 
-                    $is_assigned = isset( $assignments[ $key ] );
-                    $current_font_name = $is_assigned ? ( isset( $assignments[ $key ]['font_name'] ) ? $assignments[ $key ]['font_name'] : $assignments[ $key ]['font_id'] ) : '';
+                <?php
+                $global_assignment = isset( $assignments['global'] ) && is_array( $assignments['global'] ) ? $assignments['global'] : array();
+                foreach ( $targets as $key => $label ) :
+                    $has_explicit_assignment = isset( $assignments[ $key ] ) && is_array( $assignments[ $key ] );
+                    $is_inherited_from_global = ! $has_explicit_assignment && 'global' !== $key && ! empty( $global_assignment );
+                    $display_assignment = $has_explicit_assignment ? $assignments[ $key ] : ( $is_inherited_from_global ? $global_assignment : array() );
+                    $is_assigned = ! empty( $display_assignment );
+                    $current_font_name = $is_assigned ? ( isset( $display_assignment['font_name'] ) ? $display_assignment['font_name'] : $display_assignment['font_id'] ) : '';
                     $current_method = $is_assigned ? ( isset( $settings['delivery_method'] ) ? $settings['delivery_method'] : 'cdn' ) : '';
                     $method_display = $current_method === 'host' ? __( ' (Self Hosted)', 'kriti-bangla-fonts' ) : ( $current_method === 'cdn' ? __( ' (via CDN)', 'kriti-bangla-fonts' ) : '' );
+                    if ( $is_inherited_from_global ) {
+                        $method_display .= __( ' (Inherited from Global)', 'kriti-bangla-fonts' );
+                    }
                 ?>
                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px; background: #f6f7f7; border-radius: 8px; margin-bottom: 10px;">
                     <div>
@@ -231,7 +237,7 @@ class Kriti_Fonts {
                             <?php echo $current_font_name ? esc_html( $current_font_name ) . esc_html( $method_display ) : esc_html__( 'System Default', 'kriti-bangla-fonts' ); ?>
                         </span>
                     </div>
-                    <button type="button" class="button button-secondary kriti-reset-font" data-target="<?php echo esc_attr( $key ); ?>" <?php echo empty( $current_font_name ) ? 'style="display:none;"' : ''; ?>>
+                    <button type="button" class="button button-secondary kriti-reset-font" data-target="<?php echo esc_attr( $key ); ?>" <?php echo ( empty( $current_font_name ) || $is_inherited_from_global ) ? 'style="display:none;"' : ''; ?>>
                         <?php esc_html_e( 'Remove', 'kriti-bangla-fonts' ); ?>
                     </button>
                 </div>
@@ -512,33 +518,41 @@ class Kriti_Fonts {
             );
         }
 
-        // Apply target CSS Rules
-        foreach ( $assignments as $target => $data ) {
-            $target = sanitize_key( $target );
-            if ( ! $this->is_valid_target( $target ) || empty( $data['font_id'] ) ) {
-                continue;
-            }
+        // Global assignment should always override any legacy per-target assignments.
+        $global_font_id = '';
+        if ( isset( $assignments['global']['font_id'] ) ) {
+            $global_font_id = sanitize_key( $assignments['global']['font_id'] );
+        }
 
-            $font_id = sanitize_key( $data['font_id'] );
-            if ( '' === $font_id ) {
-                continue;
-            }
-            
-            if ( 'global' === $target ) {
-                $css .= sprintf(
-                    "body, p, h1, h2, h3, h4, h5, h6, a, span, div, li, ul, ol { font-family: 'Kriti-%s', sans-serif; }\n",
-                    esc_attr( $font_id )
-                );
-            } elseif ( 'headings' === $target ) {
-                $css .= sprintf(
-                    "h1, h2, h3, h4, h5, h6 { font-family: 'Kriti-%s', sans-serif !important; }\n",
-                    esc_attr( $font_id )
-                );
-            } elseif ( 'paragraphs' === $target ) {
-                $css .= sprintf(
-                    "p { font-family: 'Kriti-%s', sans-serif !important; }\n",
-                    esc_attr( $font_id )
-                );
+        if ( '' !== $global_font_id ) {
+            $css .= sprintf(
+                "body, p, h1, h2, h3, h4, h5, h6, a, span, div, li, ul, ol { font-family: 'Kriti-%s', sans-serif !important; }\n",
+                esc_attr( $global_font_id )
+            );
+        } else {
+            // Apply target CSS Rules
+            foreach ( $assignments as $target => $data ) {
+                $target = sanitize_key( $target );
+                if ( ! $this->is_valid_target( $target ) || empty( $data['font_id'] ) ) {
+                    continue;
+                }
+
+                $font_id = sanitize_key( $data['font_id'] );
+                if ( '' === $font_id ) {
+                    continue;
+                }
+
+                if ( 'headings' === $target ) {
+                    $css .= sprintf(
+                        "h1, h2, h3, h4, h5, h6 { font-family: 'Kriti-%s', sans-serif !important; }\n",
+                        esc_attr( $font_id )
+                    );
+                } elseif ( 'paragraphs' === $target ) {
+                    $css .= sprintf(
+                        "p { font-family: 'Kriti-%s', sans-serif !important; }\n",
+                        esc_attr( $font_id )
+                    );
+                }
             }
         }
 

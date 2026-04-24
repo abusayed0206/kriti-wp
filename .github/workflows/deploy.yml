@@ -1,0 +1,54 @@
+name: Deploy to WordPress.org & Create GitHub Release
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Triggers
+#   • Push a version tag (e.g. v1.0.2) → full SVN deploy + GitHub Release
+# Required secrets (set in repo Settings → Secrets → Actions):
+#   SVN_USERNAME   – your WordPress.org username
+#   SVN_PASSWORD   – your WordPress.org password
+# Optional env overrides (see below):
+#   SLUG           – defaults to the GitHub repo name. Set if your WP.org
+#                    plugin slug differs (e.g. "kriti-bangla-fonts").
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  # ── Job 1: Deploy to WordPress.org SVN and attach ZIP to GitHub Release ────
+  deploy:
+    name: SVN Deploy + GitHub Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # needed to create GitHub Releases
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # The 10up action handles:
+      #   • Checking out the SVN repo
+      #   • Copying trunk files (respecting .distignore)
+      #   • Copying assets/ → SVN assets dir (banners, icons, screenshots)
+      #   • Tagging the SVN release with the same version number
+      #   • Generating a clean ZIP from SVN trunk
+      - name: Deploy to WordPress.org SVN
+        id: deploy
+        uses: 10up/action-wordpress-plugin-deploy@stable
+        with:
+          generate-zip: true   # emits the `zip-path` output used below
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: kriti-bangla-fonts
+          ASSETS_DIR: assets   # where your banners/icons/screenshots live
+
+      - name: Create GitHub Release and attach ZIP
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.deploy.outputs.zip-path }}
+          generate_release_notes: true
+          draft: false
+          prerelease: false

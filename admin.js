@@ -125,6 +125,10 @@ jQuery(document).ready(function($) {
         $('.kriti-tab-content').hide();
         $('#kriti-tab-preview').fadeIn('fast');
 
+        // Always start with Global mode to avoid stale custom state from previous edits.
+        $('input[name="kriti_assignment_mode"][value="global"]').prop('checked', true);
+        $('#kriti-custom-targets-wrap').hide();
+
         $('#kriti-modal').fadeIn('fast').css('display', 'flex');
     });
 

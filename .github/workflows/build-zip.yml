@@ -1,0 +1,82 @@
+name: Build Test ZIP (No SVN Deploy)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Manual trigger only — use this to:
+#   • Test the release ZIP locally before tagging
+#   • Share a build with testers without creating an official WP.org release
+#
+# Run from: GitHub → Actions tab → "Build Test ZIP" → Run workflow
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: 'Also create a GitHub Release (draft)?'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+jobs:
+  build-zip:
+    name: Build ZIP (dry-run, no SVN)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Read plugin version from readme.txt
+        id: version
+        run: |
+          VERSION=$(grep -i "^Stable tag:" readme.txt | sed 's/Stable tag: *//i' | tr -d '[:space:]')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Detected version: $VERSION"
+
+      - name: Build plugin ZIP
+        run: |
+          PLUGIN_SLUG="kriti-bangla-fonts"
+          mkdir -p /tmp/${PLUGIN_SLUG}
+
+          rsync -av \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='SVN' \
+            --exclude='assets' \
+            --exclude='node_modules' \
+            --exclude='.distignore' \
+            --exclude='.gitignore' \
+            --exclude='README.md' \
+            --exclude='fix.md' \
+            . /tmp/${PLUGIN_SLUG}/
+
+          cd /tmp
+          zip -r ${PLUGIN_SLUG}.zip ${PLUGIN_SLUG}/
+          mv ${PLUGIN_SLUG}.zip "$GITHUB_WORKSPACE/${PLUGIN_SLUG}.zip"
+          echo "ZIP created: $GITHUB_WORKSPACE/${PLUGIN_SLUG}.zip"
+          ls -lh "$GITHUB_WORKSPACE/${PLUGIN_SLUG}.zip"
+
+      - name: Upload ZIP as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kriti-bangla-fonts-${{ steps.version.outputs.version }}-test
+          path: kriti-bangla-fonts.zip
+          retention-days: 14
+
+      - name: Create draft GitHub Release (optional)
+        if: ${{ inputs.create_release == 'true' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}-test
+          name: "Test Build v${{ steps.version.outputs.version }}"
+          files: kriti-bangla-fonts.zip
+          draft: true
+          prerelease: true
+          body: |
+            ⚠️ **This is a test/draft build — not an official release.**
+            Generated from: `${{ github.sha }}`

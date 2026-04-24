@@ -1,0 +1,10 @@
+/.git
+/.github
+/SVN
+/assets
+/node_modules
+
+.distignore
+.gitignore
+README.md
+fix.md

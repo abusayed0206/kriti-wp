@@ -223,9 +223,15 @@
 
 /* Action Buttons */
 .button.button-primary#kriti-select-font {
+    background: #2271b1;
+    border-color: #2271b1;
+    color: #fff;
+    border-radius: 8px;
     padding: 6px 20px;
-    border-radius: 6px;
     font-size: 15px;
+    height: auto;
+    font-weight: 500;
+    transition: background 0.2s;
 }
 
 /* Mobile Responsiveness */
@@ -275,16 +281,6 @@
         align-items: flex-start !important;
         gap: 10px;
     }
-}
-    background: #2271b1;
-    border-color: #2271b1;
-    color: #fff;
-    border-radius: 8px;
-    padding: 6px 20px;
-    font-size: 15px;
-    height: auto;
-    font-weight: 500;
-    transition: background 0.2s;
 }
 
 .button.button-primary#kriti-select-font:hover {

@@ -3,7 +3,7 @@ Contributors: abusayed0206
 Tags: bangla font, bengali fonts, typography, font cdn, custom fonts
 Requires at least: 5.8
 Tested up to: 6.9
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -14,7 +14,7 @@ A plugin to integrate high-quality Bangla fonts into your WordPress website seam
 
 Kriti Fonts provides a seamless way to integrate beautiful, high-quality Bangla fonts into your WordPress website. Choose from a rich catalog of Bangla fonts and apply them instantly to your site using our lightning-fast CDN, or download and host them locally on your own server for maximum privacy and performance control.
 
-= Features =
+== Features ==
 * **Font Catalog**: Browse and search through a rich collection of Bangla fonts.
 * **Live Preview**: Type and preview fonts directly from the WordPress admin dashboard before applying them.
 * **Delivery Methods**: Serve fonts via the Kriti CDN or host the font files locally on your server.
@@ -26,21 +26,24 @@ Kriti Fonts provides a seamless way to integrate beautiful, high-quality Bangla 
 This plugin connects to the Kriti service at kriti.app to provide the font catalog, metadata, and downloadable font files.
 
 It uses the service for:
-* Loading the searchable font index and font list in the admin screen.
-* Loading per-font metadata when an admin opens the Metadata tab.
-* Downloading the selected `.woff2` file only when the admin chooses `Host Locally` and saves a font.
+- Loading the searchable font index and font list in the admin screen.
+- Loading per-font metadata when an admin opens the Metadata tab.
+- Downloading the selected `.woff2` file only when the admin chooses `Host Locally` and saves a font.
 
 Data sent and when:
-* Standard HTTP request data (including your server IP address and user agent) is sent when requests are made.
-* Requested font slug/path is sent when loading metadata or downloading font files.
-* Requests happen only while an administrator uses the plugin settings page and related actions.
+- Standard HTTP request data (including your server IP address and user agent) is sent when requests are made.
+- Requested font slug/path is sent when loading metadata or downloading font files.
+- Requests happen only while an administrator uses the plugin settings page and related actions.
 
 Service provider:
-* Kriti (https://kriti.app)
+- Kriti (https://kriti.app)
+
+Source:
+- Github(https://github.com/abusayed0206/kriti-wp)
 
 Service terms and privacy:
-* Terms of Service: https://kriti.app/terms-of-service
-* Privacy Policy: https://kriti.app/privacy-policy
+- Terms of Service: https://kriti.app/terms-of-service
+- Privacy Policy: https://kriti.app/privacy-policy
 
 == Installation ==
 
@@ -66,6 +69,13 @@ Kriti uses highly optimized WOFF2 font files. If you use the CDN, they are serve
 2. Font preview and assignment modal.
 
 == Changelog ==
+
+= 1.0.2 =
+* Fixed `KRITI_PLUGIN_VERSION` constant mismatch with plugin header version.
+* Replaced manual release workflow with automated GitHub Actions pipeline.
+* Added SVN deployment via 10up/action-wordpress-plugin-deploy for WordPress.org publishing.
+* Added separate manual "Build Test ZIP" workflow for pre-release testing.
+* Added `.distignore` to exclude dev-only files from SVN trunk.
 
 = 1.0.1 =
 * Updated plugin naming and text domain for WordPress.org review compliance.
